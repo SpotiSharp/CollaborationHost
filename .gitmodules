@@ -1,0 +1,4 @@
+[submodule "SpotiSharpBackend"]
+	path = SpotiSharpBackend
+	url = https://github.com/SpotiSharp/SpotiSharpBackend
+	branch = main
