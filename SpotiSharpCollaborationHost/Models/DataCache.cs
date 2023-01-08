@@ -1,5 +1,5 @@
 ﻿using SpotifyAPI.Web;
-using SpotiSharpCollaborationHost.Models.Spotify;
+using SpotiSharpBackend;
 
 namespace SpotiSharpCollaborationHost.Models;
 
@@ -7,8 +7,8 @@ public static class DataCache
 {
     private static int _millisecondRetryDelay = 50;
     
-    public static List<Song> _songs = new List<Song>();
-    public static List<Song> Songs
+    public static List<SongData> _songs = new List<SongData>();
+    public static List<SongData> Songs
     {
         get
         {

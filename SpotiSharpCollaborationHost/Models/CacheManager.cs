@@ -1,7 +1,5 @@
 ﻿using SpotifyAPI.Web;
 using SpotiSharpBackend;
-using SpotiSharpCollaborationHost.Controllers;
-using SpotiSharpCollaborationHost.Models.Spotify;
 
 namespace SpotiSharpCollaborationHost.Models;
 
@@ -12,9 +10,9 @@ public static class CacheManager
         DataRefreshLoop.Instance.OnDataRefresh += UpdateCachedData;
     }
 
-    public static async Task<List<Song>> GetSongsById(List<string> songIds)
+    public static async Task<List<SongData>> GetSongsById(List<string> songIds)
     {
-        var resultSongs = new List<Song>();
+        var resultSongs = new List<SongData>();
         foreach (string songId in songIds)
         {
             
@@ -24,7 +22,7 @@ public static class CacheManager
             apiCallerInstance = await APICaller.WaitForRateLimitWindowInstance;
             var audioFeatures = apiCallerInstance?.GetAudioFeaturesByTrackId(songId);
             if (fullTrack == null || audioFeatures == null) continue;
-            resultSongs.Add(new Song
+            resultSongs.Add(new SongData
             {
                 FullTrack = fullTrack,
                 AudioFeatures = audioFeatures
@@ -34,21 +32,23 @@ public static class CacheManager
         return resultSongs;
     }
 
-    public static async void LoadSongDataForSession(List<Song> songs)
+    public static async void LoadSongDataForSession(List<string> songIds)
     {
-        var audioFeatures = APICaller.Instance?.GetMultipleTrackAudioFeaturesByTrackIds(songs.Select(s => s.FullTrack.Id).ToList());
+        var fullTracks = APICaller.Instance?.GetMultipleTracksByTrackId(songIds);
+        if (fullTracks == null) return;
+        var audioFeatures = APICaller.Instance?.GetMultipleTrackAudioFeaturesByTrackIds(fullTracks.Select(ft => ft.Id).ToList());
         var artists = new List<FullArtist>();
-        List<Song> loadedSongs = songs.Select(s => new Song 
+        List<SongData> loadedSongs = fullTracks.Select(s => new SongData 
             {
-                FullTrack = s.FullTrack,
-                AudioFeatures = audioFeatures?.First(af => af.Id == s.FullTrack?.Id)
+                FullTrack = s,
+                AudioFeatures = audioFeatures?.First(af => af.Id == s.Id)
             }
         ).ToList();
 
-        foreach (Song song in songs)
+        foreach (FullTrack song in fullTracks)
         {
-            if (song.FullTrack == null) continue;
-            foreach (var artist in song.FullTrack.Artists)
+            if (song == null) continue;
+            foreach (var artist in song.Artists)
             {
                 var apiCallerInstance = await APICaller.WaitForRateLimitWindowInstance;
                 var loadedArtist = apiCallerInstance?.GetArtistById(artist.Id);
