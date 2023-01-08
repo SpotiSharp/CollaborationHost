@@ -1,6 +1,6 @@
-﻿using SpotiSharpCollaborationHost.Models;
+﻿using CollaborationHost.Models;
 
-namespace SpotiSharpCollaborationHost.DTOs;
+namespace CollaborationHost.DTOs;
 
 public class CollaborationSessionDto
 {

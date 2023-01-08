@@ -1,11 +1,11 @@
 using Microsoft.AspNetCore.Mvc;
 using SpotiSharpBackend.Enums;
-using SpotiSharpCollaborationHost.DTOs;
-using SpotiSharpCollaborationHost.Interfaces;
-using SpotiSharpCollaborationHost.Models;
-using SpotiSharpCollaborationHost.Models.Filters;
+using CollaborationHost.DTOs;
+using CollaborationHost.Interfaces;
+using CollaborationHost.Models;
+using CollaborationHost.Models.Filters;
 
-namespace SpotiSharpCollaborationHost.Controllers;
+namespace CollaborationHost.Controllers;
 
 [ApiController]
 [Route("[controller]")]

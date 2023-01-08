@@ -1,4 +1,4 @@
-﻿namespace SpotiSharpCollaborationHost.Models;
+﻿namespace CollaborationHost.Models;
 
 public static class CollaborationSessionManager
 {

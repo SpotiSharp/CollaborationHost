@@ -1,7 +1,7 @@
 ﻿using SpotifyAPI.Web;
 using SpotiSharpBackend;
 
-namespace SpotiSharpCollaborationHost.Models;
+namespace CollaborationHost.Models;
 
 public static class CacheManager
 {

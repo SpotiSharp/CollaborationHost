@@ -2,7 +2,7 @@
 using Newtonsoft.Json.Linq;
 using SpotiSharpBackend;
 
-namespace SpotiSharpCollaborationHost.Models;
+namespace CollaborationHost.Models;
 
 public class ConfigurationManager
 {

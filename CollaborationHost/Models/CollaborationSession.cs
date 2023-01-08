@@ -1,6 +1,6 @@
-﻿using SpotiSharpCollaborationHost.Interfaces;
+﻿using CollaborationHost.Interfaces;
 
-namespace SpotiSharpCollaborationHost.Models;
+namespace CollaborationHost.Models;
 
 public class CollaborationSession
 {

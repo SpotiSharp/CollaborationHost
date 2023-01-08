@@ -1,5 +1,5 @@
 using SpotiSharpBackend;
-using ConfigurationManager = SpotiSharpCollaborationHost.Models.ConfigurationManager;
+using ConfigurationManager = CollaborationHost.Models.ConfigurationManager;
 
 var builder = WebApplication.CreateBuilder(args);
 

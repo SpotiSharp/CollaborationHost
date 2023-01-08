@@ -1,6 +1,6 @@
 ﻿using SpotiSharpBackend;
 
-namespace SpotiSharpCollaborationHost.Interfaces;
+namespace CollaborationHost.Interfaces;
 
 public interface IFilter
 {

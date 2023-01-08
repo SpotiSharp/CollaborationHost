@@ -1,8 +1,8 @@
 ﻿using SpotiSharpBackend;
 using SpotiSharpBackend.Enums;
-using SpotiSharpCollaborationHost.Interfaces;
+using CollaborationHost.Interfaces;
 
-namespace SpotiSharpCollaborationHost.Models.Filters;
+namespace CollaborationHost.Models.Filters;
 
 public class TextFilter : BaseFilter, IFilter
 {

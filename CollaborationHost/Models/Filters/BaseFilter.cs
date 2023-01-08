@@ -1,6 +1,6 @@
 ﻿using SpotiSharpBackend.Enums;
 
-namespace SpotiSharpCollaborationHost.Models.Filters;
+namespace CollaborationHost.Models.Filters;
 
 public class BaseFilter
 {
