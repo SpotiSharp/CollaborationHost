@@ -4,7 +4,6 @@ using SpotiSharpCollaborationHost.DTOs;
 using SpotiSharpCollaborationHost.Interfaces;
 using SpotiSharpCollaborationHost.Models;
 using SpotiSharpCollaborationHost.Models.Filters;
-using SpotiSharpCollaborationHost.Models.Spotify;
 
 namespace SpotiSharpCollaborationHost.Controllers;
 
@@ -12,14 +11,6 @@ namespace SpotiSharpCollaborationHost.Controllers;
 [Route("[controller]")]
 public class CollaborationSessionController : ControllerBase
 {
-    [HttpPost("create-session")]
-    public ActionResult CreateSession(string sessionId)
-    {
-        if (CheckSessionExists(out _, sessionId)) return BadRequest("Session already exists.");
-        CollaborationSessionManager.CollaborationSessions.Add(new CollaborationSession(sessionId));
-        return Ok("Created session.");
-    }
-    
     [HttpGet("get")]
     public ActionResult Get(string sessionId)
     {
@@ -31,14 +22,25 @@ public class CollaborationSessionController : ControllerBase
     public ActionResult GetSongsFromSession(string sessionId)
     {
         if (!CheckSessionExists(out CollaborationSession? session, sessionId)) return BadRequest("Session doesn't exist.");
-        return Ok(DataCache.Songs.Where(s => session.SongIds.Contains(s.FullTrack.Id)));
+        var resultsongs = DataCache.Songs.Where(s => session.SongIds.Contains(s.FullTrack.Id));
+        return Ok(resultsongs);
     }
     
     [HttpGet("get-filtered-songs")]
-    public ActionResult GetFilteredSongsFromSession(string sessionId, List<(TrackFilter, List<object>)> filterInputs)
+    public ActionResult GetFilteredSongsFromSession(string sessionId)
     {
         if (!CheckSessionExists(out CollaborationSession? session, sessionId)) return BadRequest("Session doesn't exist.");
-        return Ok(DataCache.Songs.Where(s => session.FilteredSongIds.Contains(s.FullTrack.Id)));
+        
+        var resultsongs = DataCache.Songs.Where(s => session.FilteredSongIds.Contains(s.FullTrack.Id));
+        return Ok(resultsongs);
+    }
+
+    [HttpPost("filter-songs")]
+    public ActionResult FilterSongsFromSession(string sessionId)
+    {
+        if (!CheckSessionExists(out CollaborationSession? session, sessionId)) return BadRequest("Session doesn't exist.");
+        session.UpdateFilteredSongs();
+        return Ok("Songs have been filtered.");
     }
 
     [HttpGet("get-filters")]
@@ -47,18 +49,27 @@ public class CollaborationSessionController : ControllerBase
         if (!CheckSessionExists(out CollaborationSession? session, sessionId)) return BadRequest("Session doesn't exist.");
         return Ok(DeserializeFilters(session.Filters));
     }
-
-    [HttpPost("add-songs")]
-    public ActionResult AddSongs(string sessionId, [FromBody] List<Song> songs)
+    
+    [HttpPost("create-session")]
+    public ActionResult CreateSession(string sessionId)
     {
+        if (CheckSessionExists(out _, sessionId)) return BadRequest("Session already exists.");
+        CollaborationSessionManager.CollaborationSessions.Add(new CollaborationSession(sessionId));
+        return Ok("Created session.");
+    }
+
+    [HttpPost("set-songs")]
+    public ActionResult SetSongs(string sessionId, [FromBody] List<string> songIds)
+    {
+        if (!songIds.Any()) return BadRequest("Requires at least 1 song id.");
         if (!CheckSessionExists(out CollaborationSession? session, sessionId)) return BadRequest("Session doesn't exist.");
-        session.SongIds.AddRange(songs.Select(s => s.FullTrack.Id));
-        CacheManager.LoadSongDataForSession(songs);
-        return Ok("Added songs to session");
+        session.SongIds = songIds;
+        CacheManager.LoadSongDataForSession(songIds);
+        return Ok("Set songs for session");
     }
 
     [HttpPost("set-filters")]
-    public ActionResult AddFilters(string sessionId, [FromBody] List<(TrackFilter, List<object>)> filterInputs)
+    public ActionResult AddFilters(string sessionId, [FromBody] Dictionary<TrackFilter, List<object>> filterInputs)
     {
         if (!CheckSessionExists(out CollaborationSession? session, sessionId)) return BadRequest("Session doesn't exist.");
         session.Filters = SerializeFilters(filterInputs);
@@ -84,25 +95,25 @@ public class CollaborationSessionController : ControllerBase
         return collaborationSession != null;
     }
 
-    private List<IFilter> SerializeFilters(List<(TrackFilter, List<object>)> filterInputs)
+    private List<IFilter> SerializeFilters(Dictionary<TrackFilter, List<object>> filterInputs)
     {
         var filters = new List<IFilter>();
         foreach (var filterInput in filterInputs)
         {
             IFilter filter = new TextFilter(TrackFilter.Genre, "");
-            switch (filterInput.Item1)
+            switch (filterInput.Key)
             {
                 case TrackFilter.Genre:
-                    filter = new TextFilter(filterInput.Item1, (string)filterInput.Item2[0]);
+                    filter = new TextFilter(filterInput.Key, (string)filterInput.Value[0]);
                     break;
                 case TrackFilter.Popularity:
                 case TrackFilter.Danceability:
                 case TrackFilter.Energy:
                 case TrackFilter.Positivity:
-                    filter = new RangeFilter(filterInput.Item1, (NumericFilterOption)filterInput.Item2[0], (double)filterInput.Item2[1]);
+                    filter = new RangeFilter(filterInput.Key, (NumericFilterOption)filterInput.Value[0], (double)filterInput.Value[1]);
                     break;
                 case TrackFilter.Tempo:
-                    filter = new NumberFilter(filterInput.Item1, (NumericFilterOption)filterInput.Item2[0], (int)filterInput.Item2[1]); 
+                    filter = new NumberFilter(filterInput.Key, (NumericFilterOption)filterInput.Value[0], (int)filterInput.Value[1]); 
                     break;
             }
             filters.Add(filter);
@@ -111,25 +122,26 @@ public class CollaborationSessionController : ControllerBase
         return filters;
     }
 
-    private List<(TrackFilter, List<object>)> DeserializeFilters(List<IFilter> filterInputs)
+    private Dictionary<TrackFilter, List<object>> DeserializeFilters(List<IFilter> filterInputs)
     {
-        var filters = new List<(TrackFilter, List<object>)>();
+        var filters = new Dictionary<TrackFilter, List<object>>();
         foreach (var filterInput in filterInputs)
         {
-            (TrackFilter, List<object>) filter = (TrackFilter.Genre, new List<object>());
+            KeyValuePair<TrackFilter, List<object>> filter = new KeyValuePair<TrackFilter, List<object>>();
             switch (filterInput)
             {
                 case TextFilter textFilter:
-                    filter = (textFilter.TrackFilter, new List<object>{textFilter.GenreName});
+                    filter = new KeyValuePair<TrackFilter, List<object>>(textFilter.TrackFilter, new List<object>{textFilter.GenreName});
                     break;
                 case RangeFilter rangeFilter:
-                    filter = (rangeFilter.TrackFilter, new List<object>{rangeFilter.NumericFilterOption, rangeFilter.RangeValue});
+                    filter = new KeyValuePair<TrackFilter, List<object>>(rangeFilter.TrackFilter, new List<object>{rangeFilter.NumericFilterOption, rangeFilter.RangeValue});
                     break;
                 case NumberFilter numberFilter:
-                    filter = (numberFilter.TrackFilter, new List<object>{numberFilter.NumericFilterOption, numberFilter.NumberValue});
+                    filter = new KeyValuePair<TrackFilter, List<object>>(numberFilter.TrackFilter, new List<object>{numberFilter.NumericFilterOption, numberFilter.NumberValue});
                     break;
             }
-            filters.Add(filter);
+            
+            filters.Add(filter.Key, filter.Value);
         }
 
         return filters;
