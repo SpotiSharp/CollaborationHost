@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using SpotiSharpBackend.Enums;
+using SpotiSharpCollaborationHost.DTOs;
 using SpotiSharpCollaborationHost.Interfaces;
 using SpotiSharpCollaborationHost.Models;
 using SpotiSharpCollaborationHost.Models.Filters;
@@ -23,7 +24,7 @@ public class CollaborationSessionController : ControllerBase
     public ActionResult Get(string sessionId)
     {
         if (!CheckSessionExists(out CollaborationSession? session, sessionId)) return BadRequest("Session doesn't exist.");
-        return Ok(session);
+        return Ok(new CollaborationSessionDto(session));
     }
     
     [HttpGet("get-songs")]
