@@ -1,3 +1,6 @@
+using SpotiSharpBackend;
+using ConfigurationManager = SpotiSharpCollaborationHost.Models.ConfigurationManager;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -8,6 +11,12 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
+
+// load config
+_ = ConfigurationManager.Instance;
+
+// authenticate with spotify
+Authentication.UserLessAuthenticate();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
