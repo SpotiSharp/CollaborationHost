@@ -1,8 +1,8 @@
-﻿using SpotiSharpCollaborationHost.Models.Spotify;
+﻿using SpotiSharpBackend;
 
 namespace SpotiSharpCollaborationHost.Interfaces;
 
 public interface IFilter
 {
-    public Task<List<Song>> FilterSongs(List<Song> songs);
+    public Task<List<SongData>> FilterSongs(List<SongData> songs);
 }

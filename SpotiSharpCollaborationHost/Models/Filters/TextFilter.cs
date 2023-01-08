@@ -1,6 +1,6 @@
-﻿using SpotiSharpBackend.Enums;
+﻿using SpotiSharpBackend;
+using SpotiSharpBackend.Enums;
 using SpotiSharpCollaborationHost.Interfaces;
-using SpotiSharpCollaborationHost.Models.Spotify;
 
 namespace SpotiSharpCollaborationHost.Models.Filters;
 
@@ -13,7 +13,7 @@ public class TextFilter : BaseFilter, IFilter
         GenreName = genreName;
     }
 
-    public async Task<List<Song>> FilterSongs(List<Song> songs)
+    public async Task<List<SongData>> FilterSongs(List<SongData> songs)
     {
         var filteredSongs = (await TrackFilter.GetFilterFunction()(songs.Select(s => s.FullTrack).ToList(), songs.Select(s => s.AudioFeatures).ToList(), GenreName)).Select(s => s.Id).ToList();
 

@@ -1,6 +1,6 @@
-﻿using SpotiSharpBackend.Enums;
+﻿using SpotiSharpBackend;
+using SpotiSharpBackend.Enums;
 using SpotiSharpCollaborationHost.Interfaces;
-using SpotiSharpCollaborationHost.Models.Spotify;
 
 namespace SpotiSharpCollaborationHost.Models.Filters;
 
@@ -15,7 +15,7 @@ public class RangeFilter : BaseFilter, IFilter
         RangeValue = rangeValue;
     }
 
-    public async Task<List<Song>> FilterSongs(List<Song> songs)
+    public async Task<List<SongData>> FilterSongs(List<SongData> songs)
     {
         var filteredSongs = (await TrackFilter.GetFilterFunction()(songs.Select(s => s.FullTrack).ToList(), songs.Select(s => s.AudioFeatures).ToList(), RangeValue, NumericFilterOption)).Select(s => s.Id).ToList();
 
