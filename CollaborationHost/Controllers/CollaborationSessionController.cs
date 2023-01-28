@@ -4,6 +4,7 @@ using CollaborationHost.DTOs;
 using CollaborationHost.Interfaces;
 using CollaborationHost.Models;
 using CollaborationHost.Models.Filters;
+using SpotiSharpBackend;
 
 namespace CollaborationHost.Controllers;
 
@@ -22,15 +23,25 @@ public class CollaborationSessionController : ControllerBase
     public ActionResult GetSongsFromSession(string sessionId)
     {
         if (!CheckSessionExists(out CollaborationSession? session, sessionId)) return BadRequest("Session doesn't exist.");
-        var resultsongs = DataCache.Songs.Where(s => session.SongIds.Contains(s.FullTrack.Id));
-        return Ok(resultsongs);
+        var resultSongs = new List<SongData>();
+        foreach (var songId in session.SongIds)
+        {
+            var songData = DataCache.Songs.FirstOrDefault(sd => sd.FullTrack.Id.Equals(songId));
+            if (songData != null) resultSongs.Add(songData);
+        }
+        return Ok(resultSongs);
     }
     
     [HttpGet("get-filtered-songs")]
     public ActionResult GetFilteredSongsFromSession(string sessionId)
     {
         if (!CheckSessionExists(out CollaborationSession? session, sessionId)) return BadRequest("Session doesn't exist.");
-        var resultSongs = DataCache.Songs.Where(s => session.FilteredSongIds.Contains(s.FullTrack.Id)).ToList();
+        var resultSongs = new List<SongData>();
+        foreach (var songId in session.FilteredSongIds)
+        {
+            var songData = DataCache.Songs.FirstOrDefault(sd => sd.FullTrack.Id.Equals(songId));
+            if (songData != null) resultSongs.Add(songData);
+        }
         return Ok(resultSongs);
     }
 
