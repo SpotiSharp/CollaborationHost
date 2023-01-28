@@ -30,9 +30,8 @@ public class CollaborationSessionController : ControllerBase
     public ActionResult GetFilteredSongsFromSession(string sessionId)
     {
         if (!CheckSessionExists(out CollaborationSession? session, sessionId)) return BadRequest("Session doesn't exist.");
-        
-        var resultsongs = DataCache.Songs.Where(s => session.FilteredSongIds.Contains(s.FullTrack.Id));
-        return Ok(resultsongs);
+        var resultSongs = DataCache.Songs.Where(s => session.FilteredSongIds.Contains(s.FullTrack.Id)).ToList();
+        return Ok(resultSongs);
     }
 
     [HttpPost("filter-songs")]
@@ -61,7 +60,6 @@ public class CollaborationSessionController : ControllerBase
     [HttpPost("set-songs")]
     public ActionResult SetSongs(string sessionId, [FromBody] List<string> songIds)
     {
-        if (!songIds.Any()) return BadRequest("Requires at least 1 song id.");
         if (!CheckSessionExists(out CollaborationSession? session, sessionId)) return BadRequest("Session doesn't exist.");
         session.SongIds = songIds;
         CacheManager.LoadSongDataForSession(songIds);
