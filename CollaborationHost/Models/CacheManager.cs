@@ -38,7 +38,10 @@ public static class CacheManager
 
     public static async void LoadSongDataForSession(List<string> songIds)
     {
-        var fullTracks = APICaller.Instance?.GetMultipleTracksByTrackId(songIds);
+        var cachedSongIds = DataCache.Songs.Select(s => s.FullTrack.Id);
+        var songIdsNew = songIds.Where(song => !cachedSongIds.Contains(song)).ToList();
+
+        var fullTracks = APICaller.Instance?.GetMultipleTracksByTrackId(songIdsNew);
         if (fullTracks == null) return;
         var audioFeatures = APICaller.Instance?.GetMultipleTrackAudioFeaturesByTrackIds(fullTracks.Select(ft => ft.Id).ToList());
         var artists = new List<FullArtist>();
@@ -49,11 +52,13 @@ public static class CacheManager
             }
         ).ToList();
 
+        var cachedArtistsIds = DataCache.Artists.Select(fa => fa.Id);
         foreach (FullTrack song in fullTracks)
         {
             if (song == null) continue;
             foreach (var artist in song.Artists)
             {
+                if (cachedArtistsIds.Contains(artist.Id)) continue;
                 var apiCallerInstance = await APICaller.WaitForRateLimitWindowInstance;
                 var loadedArtist = apiCallerInstance?.GetArtistById(artist.Id);
                 if(loadedArtist != null) artists.Add(loadedArtist);
