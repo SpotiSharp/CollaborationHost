@@ -15,8 +15,12 @@ public static class CacheManager
         var resultSongs = new List<SongData>();
         foreach (string songId in songIds)
         {
-            
-            if (DataCache.Songs.Select(s => s.FullTrack?.Id).Contains(songId)) resultSongs.Add(DataCache.Songs.First(s => s.FullTrack.Id == songId));
+
+            if (DataCache.Songs.Select(s => s.FullTrack?.Id).Contains(songId))
+            {
+                resultSongs.Add(DataCache.Songs.First(s => s.FullTrack.Id == songId));
+                continue;
+            }
             var apiCallerInstance = await APICaller.WaitForRateLimitWindowInstance;
             var fullTrack = apiCallerInstance?.GetTrackById(songId);
             apiCallerInstance = await APICaller.WaitForRateLimitWindowInstance;
