@@ -79,7 +79,7 @@ public class CollaborationSessionController : ControllerBase
     }
 
     [HttpPost("set-filters")]
-    public ActionResult AddFilters(string sessionId, [FromBody] Dictionary<TrackFilter, List<object>> filterInputs)
+    public ActionResult AddFilters(string sessionId, [FromBody] List<List<object>> filterInputs)
     {
         if (!CheckSessionExists(out CollaborationSession? session, sessionId)) return BadRequest("Session doesn't exist.");
         session.Filters = SerializeFilters(filterInputs);
@@ -105,25 +105,26 @@ public class CollaborationSessionController : ControllerBase
         return collaborationSession != null;
     }
 
-    private List<IFilter> SerializeFilters(Dictionary<TrackFilter, List<object>> filterInputs)
+    private List<IFilter> SerializeFilters(List<List<object>> filterInputs)
     {
         var filters = new List<IFilter>();
         foreach (var filterInput in filterInputs)
         {
+            TrackFilter trackFilter = ((JsonElement)filterInput[0]).Deserialize<TrackFilter>();
             IFilter filter = new TextFilter(TrackFilter.Genre, Guid.Empty, string.Empty);
-            switch (filterInput.Key)
+            switch (trackFilter)
             {
                 case TrackFilter.Genre:
-                    filter = new TextFilter(filterInput.Key, new Guid(filterInput.Value[0].ToString()), filterInput.Value[1].ToString());
+                    filter = new TextFilter(trackFilter, new Guid(filterInput[1].ToString()), filterInput[2].ToString());
                     break;
                 case TrackFilter.Popularity:
                 case TrackFilter.Danceability:
                 case TrackFilter.Energy:
                 case TrackFilter.Positivity:
-                    filter = new RangeFilter(filterInput.Key, new Guid(filterInput.Value[0].ToString()), ((JsonElement)filterInput.Value[1]).Deserialize<NumericFilterOption>(), ((JsonElement)filterInput.Value[2]).Deserialize<double>());
+                    filter = new RangeFilter(trackFilter, new Guid(filterInput[1].ToString()), ((JsonElement)filterInput[2]).Deserialize<NumericFilterOption>(), ((JsonElement)filterInput[3]).Deserialize<double>());
                     break;
                 case TrackFilter.Tempo:
-                    filter = new NumberFilter(filterInput.Key, new Guid(filterInput.Value[0].ToString()), ((JsonElement)filterInput.Value[1]).Deserialize<NumericFilterOption>(), ((JsonElement)filterInput.Value[2]).Deserialize<string>()); 
+                    filter = new NumberFilter(trackFilter, new Guid(filterInput[1].ToString()), ((JsonElement)filterInput[2]).Deserialize<NumericFilterOption>(), ((JsonElement)filterInput[3]).Deserialize<string>()); 
                     break;
             }
             filters.Add(filter);
@@ -132,26 +133,26 @@ public class CollaborationSessionController : ControllerBase
         return filters;
     }
 
-    private Dictionary<TrackFilter, List<object>> DeserializeFilters(List<IFilter> filterInputs)
+    private List<List<object>> DeserializeFilters(List<IFilter> filterInputs)
     {
-        var filters = new Dictionary<TrackFilter, List<object>>();
+        var filters = new List<List<object>>();
         foreach (var filterInput in filterInputs)
         {
-            KeyValuePair<TrackFilter, List<object>> filter = new KeyValuePair<TrackFilter, List<object>>();
+            List<object> filter = new List<object>();
             switch (filterInput)
             {
                 case TextFilter textFilter:
-                    filter = new KeyValuePair<TrackFilter, List<object>>(textFilter.TrackFilter, new List<object>{textFilter.Guid, textFilter.GenreName});
+                    filter = new List<object>{textFilter.TrackFilter, textFilter.Guid, textFilter.GenreName};
                     break;
                 case RangeFilter rangeFilter:
-                    filter = new KeyValuePair<TrackFilter, List<object>>(rangeFilter.TrackFilter, new List<object>{rangeFilter.Guid, rangeFilter.NumericFilterOption, rangeFilter.RangeValue});
+                    filter = new List<object>{rangeFilter.TrackFilter, rangeFilter.Guid, rangeFilter.NumericFilterOption, rangeFilter.RangeValue};
                     break;
                 case NumberFilter numberFilter:
-                    filter = new KeyValuePair<TrackFilter, List<object>>(numberFilter.TrackFilter, new List<object>{numberFilter.Guid, numberFilter.NumericFilterOption, numberFilter.NumberValue});
+                    filter = new List<object>{numberFilter.TrackFilter, numberFilter.Guid, numberFilter.NumericFilterOption, numberFilter.NumberValue};
                     break;
             }
             
-            filters.Add(filter.Key, filter.Value);
+            filters.Add(filter);
         }
 
         return filters;
