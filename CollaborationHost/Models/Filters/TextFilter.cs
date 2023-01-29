@@ -8,7 +8,7 @@ public class TextFilter : BaseFilter, IFilter
 {
     public string GenreName { get; set; }
     
-    public TextFilter(TrackFilter trackFilter, string genreName) : base(trackFilter)
+    public TextFilter(TrackFilter trackFilter, Guid guid, string genreName) : base(trackFilter, guid)
     {
         GenreName = genreName;
     }

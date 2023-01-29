@@ -9,7 +9,7 @@ public class RangeFilter : BaseFilter, IFilter
     public NumericFilterOption NumericFilterOption { get; set; }
     public double RangeValue { get; set; }
 
-    public RangeFilter(TrackFilter trackFilter, NumericFilterOption numericFilterOption = NumericFilterOption.Equal, double rangeValue = 0.0) : base(trackFilter)
+    public RangeFilter(TrackFilter trackFilter, Guid guid, NumericFilterOption numericFilterOption = NumericFilterOption.Equal, double rangeValue = 0.0) : base(trackFilter, guid)
     {
         NumericFilterOption = numericFilterOption;
         RangeValue = rangeValue;

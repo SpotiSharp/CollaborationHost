@@ -7,9 +7,9 @@ namespace CollaborationHost.Models.Filters;
 public class NumberFilter : BaseFilter, IFilter
 { 
     public NumericFilterOption NumericFilterOption { get; set; }
-    public int NumberValue { get; set; }
+    public string NumberValue { get; set; }
 
-    public NumberFilter(TrackFilter trackFilter, NumericFilterOption numericFilterOption = NumericFilterOption.Equal, int numberValue = 0) : base(trackFilter)
+    public NumberFilter(TrackFilter trackFilter, Guid guid, NumericFilterOption numericFilterOption = NumericFilterOption.Equal, string numberValue = "") : base(trackFilter, guid)
     {
         NumericFilterOption = numericFilterOption;
         NumberValue = numberValue;
