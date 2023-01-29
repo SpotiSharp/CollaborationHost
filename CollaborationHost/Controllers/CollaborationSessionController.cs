@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
 using SpotiSharpBackend.Enums;
 using CollaborationHost.DTOs;
@@ -109,20 +110,20 @@ public class CollaborationSessionController : ControllerBase
         var filters = new List<IFilter>();
         foreach (var filterInput in filterInputs)
         {
-            IFilter filter = new TextFilter(TrackFilter.Genre, "");
+            IFilter filter = new TextFilter(TrackFilter.Genre, Guid.Empty, string.Empty);
             switch (filterInput.Key)
             {
                 case TrackFilter.Genre:
-                    filter = new TextFilter(filterInput.Key, (string)filterInput.Value[0]);
+                    filter = new TextFilter(filterInput.Key, new Guid(filterInput.Value[0].ToString()), filterInput.Value[1].ToString());
                     break;
                 case TrackFilter.Popularity:
                 case TrackFilter.Danceability:
                 case TrackFilter.Energy:
                 case TrackFilter.Positivity:
-                    filter = new RangeFilter(filterInput.Key, (NumericFilterOption)filterInput.Value[0], (double)filterInput.Value[1]);
+                    filter = new RangeFilter(filterInput.Key, new Guid(filterInput.Value[0].ToString()), ((JsonElement)filterInput.Value[1]).Deserialize<NumericFilterOption>(), ((JsonElement)filterInput.Value[2]).Deserialize<double>());
                     break;
                 case TrackFilter.Tempo:
-                    filter = new NumberFilter(filterInput.Key, (NumericFilterOption)filterInput.Value[0], (int)filterInput.Value[1]); 
+                    filter = new NumberFilter(filterInput.Key, new Guid(filterInput.Value[0].ToString()), ((JsonElement)filterInput.Value[1]).Deserialize<NumericFilterOption>(), ((JsonElement)filterInput.Value[2]).Deserialize<string>()); 
                     break;
             }
             filters.Add(filter);
@@ -140,13 +141,13 @@ public class CollaborationSessionController : ControllerBase
             switch (filterInput)
             {
                 case TextFilter textFilter:
-                    filter = new KeyValuePair<TrackFilter, List<object>>(textFilter.TrackFilter, new List<object>{textFilter.GenreName});
+                    filter = new KeyValuePair<TrackFilter, List<object>>(textFilter.TrackFilter, new List<object>{textFilter.Guid, textFilter.GenreName});
                     break;
                 case RangeFilter rangeFilter:
-                    filter = new KeyValuePair<TrackFilter, List<object>>(rangeFilter.TrackFilter, new List<object>{rangeFilter.NumericFilterOption, rangeFilter.RangeValue});
+                    filter = new KeyValuePair<TrackFilter, List<object>>(rangeFilter.TrackFilter, new List<object>{rangeFilter.Guid, rangeFilter.NumericFilterOption, rangeFilter.RangeValue});
                     break;
                 case NumberFilter numberFilter:
-                    filter = new KeyValuePair<TrackFilter, List<object>>(numberFilter.TrackFilter, new List<object>{numberFilter.NumericFilterOption, numberFilter.NumberValue});
+                    filter = new KeyValuePair<TrackFilter, List<object>>(numberFilter.TrackFilter, new List<object>{numberFilter.Guid, numberFilter.NumericFilterOption, numberFilter.NumberValue});
                     break;
             }
             
